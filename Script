@@ -1,0 +1,224 @@
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "AnimationTestGui"
+screenGui.ResetOnSpawn = true
+
+-- Toggle button (to show/hide all controls)
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Position = UDim2.new(0, 0, 0, 0)
+toggleButton.Text = "Toggle"
+toggleButton.Parent = screenGui
+
+-- Container frame for all controls (hidden by default)
+local controlsFrame = Instance.new("Frame")
+controlsFrame.Size = UDim2.new(0, 420, 0, 380)
+controlsFrame.Position = UDim2.new(0, 0, 0, 60)
+controlsFrame.BackgroundTransparency = 1
+controlsFrame.Visible = false
+controlsFrame.Parent = screenGui
+
+-- TextBox for Animation ID
+local animationBox = Instance.new("TextBox")
+animationBox.Size = UDim2.new(0, 200, 0, 50)
+animationBox.Position = UDim2.new(0, 0, 0, 0)
+animationBox.PlaceholderText = "Enter Animation ID (rbxassetid://ID or ID)"
+animationBox.Text = ""
+animationBox.Parent = controlsFrame
+
+-- TextBox for Time Position
+local timeBox = Instance.new("TextBox")
+timeBox.Size = UDim2.new(0, 200, 0, 50)
+timeBox.Position = UDim2.new(0, 0, 0, 60)
+timeBox.PlaceholderText = "Enter time in seconds"
+timeBox.Text = "0"
+timeBox.Parent = controlsFrame
+
+-- TextBox for Playback Speed
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(0, 200, 0, 50)
+speedBox.Position = UDim2.new(0, 0, 0, 120)
+speedBox.PlaceholderText = "Enter playback speed"
+speedBox.Text = "1"
+speedBox.Parent = controlsFrame
+
+-- Play button
+local playButton = Instance.new("TextButton")
+playButton.Size = UDim2.new(0, 200, 0, 50)
+playButton.Position = UDim2.new(0, 0, 0, 180)
+playButton.Text = "Play Animation"
+playButton.Parent = controlsFrame
+
+-- Dropdown button (to toggle presets dropdown visibility)
+local dropdownToggle = Instance.new("TextButton")
+dropdownToggle.Size = UDim2.new(0, 100, 0, 50)
+dropdownToggle.Position = UDim2.new(0, 210, 0, 0)
+dropdownToggle.Text = "Presets"
+dropdownToggle.Parent = controlsFrame
+
+-- Presets dropdown (scrolling frame)
+local dropdown = Instance.new("ScrollingFrame")
+dropdown.Size = UDim2.new(0, 200, 0, 100)
+dropdown.Position = UDim2.new(0, 210, 0, 50)
+dropdown.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+dropdown.Visible = false
+dropdown.CanvasSize = UDim2.new(0, 0, 0, 0)
+dropdown.ScrollBarThickness = 8
+dropdown.Parent = controlsFrame
+
+-- Preset data
+local defaultPresets = {
+    {Name = "walk", Id = "180426354"},
+    {Name = "jump", Id = "125750702"},
+    {Name = "fall", Id = "180436148"},
+    {Name = "climb", Id = "180436334"},
+    {Name = "sit", Id = "178130996"},
+    {Name = "dance 1", Id = "182491065"},
+    {Name = "dance 2", Id = "182436842"},
+    {Name = "dance 3", Id = "182491368"},
+    {Name = "angelicslam", Id = "184574340"}
+}
+
+local customPresets = {}
+
+-- Function to update dropdown buttons
+local function updateDropdown()
+    for _, child in pairs(dropdown:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+
+    local allPresets = {}
+    for _, p in ipairs(defaultPresets) do table.insert(allPresets, p) end
+    for _, p in ipairs(customPresets) do table.insert(allPresets, p) end
+
+    for i, preset in ipairs(allPresets) do
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 0, 25)
+        frame.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+        frame.BackgroundTransparency = 1
+        frame.Parent = dropdown
+
+        local button = Instance.new("TextButton")
+        button.Size = UDim2.new(0.75, 0, 1, 0)
+        button.Position = UDim2.new(0, 0, 0, 0)
+        button.Text = preset.Id .. " - " .. preset.Name
+        button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+        button.TextColor3 = Color3.new(1, 1, 1)
+        button.Parent = frame
+
+        button.MouseButton1Click:Connect(function()
+            animationBox.Text = preset.Id
+            dropdown.Visible = false
+        end)
+
+        if table.find(customPresets, preset) then
+            local deleteBtn = Instance.new("TextButton")
+            deleteBtn.Size = UDim2.new(0.25, 0, 1, 0)
+            deleteBtn.Position = UDim2.new(0.75, 0, 0, 0)
+            deleteBtn.Text = "X"
+            deleteBtn.BackgroundColor3 = Color3.new(1, 0.2, 0.2)
+            deleteBtn.TextColor3 = Color3.new(1, 1, 1)
+            deleteBtn.Parent = frame
+
+            deleteBtn.MouseButton1Click:Connect(function()
+                table.remove(customPresets, table.find(customPresets, preset))
+                updateDropdown()
+            end)
+        end
+    end
+
+    dropdown.CanvasSize = UDim2.new(0, 0, 0, #allPresets * 25)
+end
+
+-- Dropdown toggle button
+dropdownToggle.MouseButton1Click:Connect(function()
+    dropdown.Visible = not dropdown.Visible
+end)
+
+-- Add custom preset UI
+local nameBox = Instance.new("TextBox")
+nameBox.Size = UDim2.new(0, 200, 0, 30)
+nameBox.Position = UDim2.new(0, 0, 0, 240)
+nameBox.PlaceholderText = "Preset name"
+nameBox.Text = ""
+nameBox.Parent = controlsFrame
+
+local idBox = Instance.new("TextBox")
+idBox.Size = UDim2.new(0, 200, 0, 30)
+idBox.Position = UDim2.new(0, 0, 0, 280)
+idBox.PlaceholderText = "Animation ID"
+idBox.Text = ""
+idBox.Parent = controlsFrame
+
+local addPresetBtn = Instance.new("TextButton")
+addPresetBtn.Size = UDim2.new(0, 200, 0, 30)
+addPresetBtn.Position = UDim2.new(0, 0, 0, 320)
+addPresetBtn.Text = "Add Preset(Did not save)"
+addPresetBtn.Parent = controlsFrame
+
+addPresetBtn.MouseButton1Click:Connect(function()
+    local name = nameBox.Text
+    local id = idBox.Text:match("%d+")
+
+    if name ~= "" and id then
+        table.insert(customPresets, {Name = name, Id = id})
+        nameBox.Text = ""
+        idBox.Text = ""
+        updateDropdown()
+    else
+        if name == "" then nameBox.Text = "Missing name" end
+        if not id then idBox.Text = "Invalid ID" end
+    end
+end)
+
+-- Animation playback logic
+local animationTrack = nil
+local isPlaying = false
+
+playButton.MouseButton1Click:Connect(function()
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        local animId = animationBox.Text
+        local timePos = tonumber(timeBox.Text)
+        local speed = tonumber(speedBox.Text)
+
+        if animId ~= "" and timePos and speed then
+            local anim = Instance.new("Animation")
+            local id = animId:match("%d+")
+            anim.AnimationId = "rbxassetid://" .. id
+
+            if not isPlaying then
+                animationTrack = humanoid:LoadAnimation(anim)
+                animationTrack:Play()
+                animationTrack.TimePosition = timePos
+                animationTrack:AdjustSpeed(speed)
+                playButton.Text = "Stop Animation"
+                isPlaying = true
+            else
+                animationTrack:Stop()
+                animationTrack:Destroy()
+                playButton.Text = "Play Animation"
+                isPlaying = false
+            end
+        else
+            if animId == "" then animationBox.Text = "Invalid ID" end
+            if not timePos then timeBox.Text = "Invalid time" end
+            if not speed then speedBox.Text = "Invalid speed" end
+        end
+    end
+end)
+
+-- Toggle button logic: show/hide all controls
+toggleButton.MouseButton1Click:Connect(function()
+    controlsFrame.Visible = not controlsFrame.Visible
+    if not controlsFrame.Visible then
+        dropdown.Visible = false -- hide presets dropdown when controls hide
+    end
+end)
+
+-- Initialize dropdown
+updateDropdown()
