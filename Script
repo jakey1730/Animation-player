@@ -7,7 +7,7 @@ screenGui.ResetOnSpawn = true
 local toggleButton = Instance.new("TextButton")
 toggleButton.Size = UDim2.new(0, 100, 0, 50)
 toggleButton.Position = UDim2.new(0, 0, 0, 0)
-toggleButton.Text = "Toggle"
+toggleButton.Text = "Toggle(Made by @zxcv1218 on youtube)"
 toggleButton.Parent = screenGui
 
 -- Container frame for all controls (hidden by default)
