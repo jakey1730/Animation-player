@@ -5,7 +5,7 @@ screenGui.ResetOnSpawn = true
 
 -- Toggle button (to show/hide all controls)
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Size = UDim2.new(0, 250, 0, 50)
 toggleButton.Position = UDim2.new(0, 50, 0, 0)
 toggleButton.Text = "Toggle(Made by @zxcv1218 on youtube)"
 toggleButton.Parent = screenGui
