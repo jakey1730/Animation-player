@@ -222,3 +222,74 @@ end)
 
 -- Initialize dropdown
 updateDropdown()
+
+-- Logger UI toggle button
+local loggerToggle = Instance.new("TextButton")
+loggerToggle.Size = UDim2.new(0, 100, 0, 50)
+loggerToggle.Position = UDim2.new(0, 420, 0, 0)
+loggerToggle.Text = "Animation Log"
+loggerToggle.Parent = screenGui
+
+-- Logger dropdown
+local loggerDropdown = Instance.new("ScrollingFrame")
+loggerDropdown.Size = UDim2.new(0, 300, 0, 200)
+loggerDropdown.Position = UDim2.new(0, 420, 0, 60)
+loggerDropdown.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+loggerDropdown.Visible = false
+loggerDropdown.CanvasSize = UDim2.new(0, 0, 0, 0)
+loggerDropdown.ScrollBarThickness = 6
+loggerDropdown.Parent = screenGui
+
+-- Logged animation list
+local loggedAnimations = {}
+
+-- Toggle dropdown
+loggerToggle.MouseButton1Click:Connect(function()
+	loggerDropdown.Visible = not loggerDropdown.Visible
+end)
+
+-- Function to update the dropdown list
+local function updateLoggerDropdown()
+	for _, child in ipairs(loggerDropdown:GetChildren()) do
+		if child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+
+	for i, animId in ipairs(loggedAnimations) do
+		local label = Instance.new("TextLabel")
+		label.Size = UDim2.new(1, 0, 0, 25)
+		label.Position = UDim2.new(0, 0, 0, (i - 1) * 25)
+		label.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+		label.TextColor3 = Color3.new(1, 1, 1)
+		label.Text = animId
+		label.Parent = loggerDropdown
+	end
+
+	loggerDropdown.CanvasSize = UDim2.new(0, 0, 0, #loggedAnimations * 25)
+end
+
+-- Monitor animations
+local function monitorAnimations()
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	humanoid.AnimationPlayed:Connect(function(track)
+		local id = track.Animation.AnimationId
+		if not table.find(loggedAnimations, id) then
+			table.insert(loggedAnimations, id)
+			updateLoggerDropdown()
+		end
+	end)
+end
+
+-- Start monitoring when character loads
+player.CharacterAdded:Connect(function()
+	task.wait(1)
+	monitorAnimations()
+end)
+
+-- Run it immediately if character already loaded
+if player.Character then
+	monitorAnimations()
+end
