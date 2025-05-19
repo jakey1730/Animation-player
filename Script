@@ -77,7 +77,7 @@ local defaultPresets = {
     {Name = "dance 2", Id = "182436842"},
     {Name = "dance 3", Id = "182491368"},
     {Name = "angelicslam", Id = "184574340"},
-	{Name = "fly", Id = "119783214"}
+    {Name = "fly", Id = "119783214"}
 }
 
 local customPresets = {}
