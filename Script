@@ -225,14 +225,14 @@ updateDropdown()
 
 
 
--- Logger toggle button
+-- Logger Toggle Button
 local loggerToggle = Instance.new("TextButton")
 loggerToggle.Size = UDim2.new(0, 100, 0, 50)
 loggerToggle.Position = UDim2.new(0, 320, 0, 0)
 loggerToggle.Text = "Logger"
 loggerToggle.Parent = screenGui
 
--- Logger dropdown
+-- Logger Dropdown
 local loggerDropdown = Instance.new("ScrollingFrame")
 loggerDropdown.Size = UDim2.new(0, 200, 0, 100)
 loggerDropdown.Position = UDim2.new(0, 320, 0, 50)
@@ -242,55 +242,56 @@ loggerDropdown.CanvasSize = UDim2.new(0, 0, 0, 0)
 loggerDropdown.ScrollBarThickness = 8
 loggerDropdown.Parent = screenGui
 
-local loggedAnimations = {}
-
-local function updateLoggerDropdown()
-    for _, child in ipairs(loggerDropdown:GetChildren()) do
-        if child:IsA("Frame") then child:Destroy() end
-    end
-
-    local i = 0
-    for animId, _ in pairs(loggedAnimations) do
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 0, 25)
-        frame.Position = UDim2.new(0, 0, 0, i * 25)
-        frame.BackgroundTransparency = 1
-        frame.Parent = loggerDropdown
-
-        local button = Instance.new("TextButton")
-        button.Size = UDim2.new(1, 0, 1, 0)
-        button.Position = UDim2.new(0, 0, 0, 0)
-        button.Text = animId
-        button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
-        button.TextColor3 = Color3.new(1, 1, 1)
-        button.Parent = frame
-
-        button.MouseButton1Click:Connect(function()
-            idBox.Text = animId
-            loggerDropdown.Visible = false
-        end)
-
-        i += 1
-    end
-
-    loggerDropdown.CanvasSize = UDim2.new(0, 0, 0, i * 25)
-end
-
+-- Toggling logger dropdown
 loggerToggle.MouseButton1Click:Connect(function()
     loggerDropdown.Visible = not loggerDropdown.Visible
 end)
 
-local function monitorAnimations()
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:WaitForChild("Humanoid")
+-- Logger logic
+local loggedIds = {}
 
-    humanoid.AnimationPlayed:Connect(function(track)
-        local animId = track.Animation.AnimationId:match("%d+")
-        if animId and not loggedAnimations[animId] then
-            loggedAnimations[animId] = true
-            updateLoggerDropdown()
-        end
+local function addToLogger(id)
+    if loggedIds[id] then return end -- Avoid duplicates
+    loggedIds[id] = true
+
+    local index = #loggerDropdown:GetChildren()
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 0, 25)
+    frame.Position = UDim2.new(0, 0, 0, index * 25)
+    frame.BackgroundTransparency = 1
+    frame.Parent = loggerDropdown
+
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.Position = UDim2.new(0, 0, 0, 0)
+    button.Text = id
+    button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Parent = frame
+
+    button.MouseButton1Click:Connect(function()
+        animationBox.Text = "rbxassetid://" .. id
     end)
+
+    loggerDropdown.CanvasSize = UDim2.new(0, 0, 0, index * 25 + 25)
 end
 
-monitorAnimations()
+-- Monitor animations
+task.spawn(function()
+    while true do
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                for _, track in pairs(hum:GetPlayingAnimationTracks()) do
+                    local animId = track.Animation.AnimationId
+                    local id = animId:match("%d+")
+                    if id then
+                        addToLogger(id)
+                    end
+                end
+            end
+        end
+        task.wait(1)
+    end
+end)
